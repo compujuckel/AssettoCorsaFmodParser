@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FmodParser", "FmodParser\FmodParser.csproj", "{0CCDA46D-5708-4FDE-805A-21B7F4846077}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0CCDA46D-5708-4FDE-805A-21B7F4846077}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CCDA46D-5708-4FDE-805A-21B7F4846077}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CCDA46D-5708-4FDE-805A-21B7F4846077}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CCDA46D-5708-4FDE-805A-21B7F4846077}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
