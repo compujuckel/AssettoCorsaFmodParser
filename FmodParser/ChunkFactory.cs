@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
+using CommunityToolkit.HighPerformance;
 using FmodParser.Riff;
 
 namespace FmodParser;
@@ -21,16 +22,17 @@ public class ChunkFactory
         }
     }
 
-    public DataChunk GetDataChunk(Memory<byte> identifier, int length, Memory<byte> data)
+    public RiffChunkBase GetDataChunk(Memory<byte> identifier, int length, Memory<byte> data)
     {
         var identifierInt = MemoryMarshal.Read<uint>(identifier.Span);
 
         if (_typeMap.TryGetValue(identifierInt, out var type))
         {
-            var chunk = (DataChunk)Activator.CreateInstance(type, data)!;
+            using var stream = data.AsStream();
+            using var reader = new BinaryReader(stream);
+            var chunk = (RiffChunkBase)Activator.CreateInstance(type, reader)!;
             chunk.Identifier = identifier;
             chunk.Length = length;
-            chunk.Data = data;
 
             return chunk;
         }

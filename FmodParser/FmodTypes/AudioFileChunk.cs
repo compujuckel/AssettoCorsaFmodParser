@@ -27,7 +27,7 @@ public class AudioFileChunk : RiffChunkBase
         writer.Write(Unknown2);
     }
 
-    public override void ToWriter(TextWriter writer, int indent = 0)
+    public override void ToTextWriter(TextWriter writer, int indent = 0)
     {
         writer.WriteIndented(indent + 1, "Audio File");
         writer.WriteIndented(indent + 1, $"Audio File ID: {AudioFileId.ToKnownString()}");

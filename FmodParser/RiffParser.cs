@@ -15,13 +15,13 @@ public static class RiffParser
 {
     private static readonly ChunkFactory ChunkFactory = new();
     
-    public static RiffChunkBase? Parse(string filename)
+    public static FmodFile Parse(string filename)
     {
-        using var file = MemoryMappedFile.CreateFromFile(filename, FileMode.Open);
+        var file = MemoryMappedFile.CreateFromFile(filename, FileMode.Open);
         var accessor = file.CreateMemoryAccessor(0, 0, MemoryMappedFileAccess.Read);
 
         var result = ParseChunk(accessor.Memory, out _, out var chunk);
-        return chunk;
+        return new FmodFile(file, accessor, chunk!);
     }
 
     public static bool ParseChunk(Memory<byte> data, out int bytesRead, [NotNullWhen(true)] out RiffChunkBase? chunk)
@@ -113,11 +113,7 @@ public static class RiffParser
         else if (chunk is DataChunk data)
         {
             WriteIndented(writer, indentation, $"[{IdentToStr(data.Identifier)}] len={data.Length}");
-            if (data.Identifier.Span.SequenceEqual("LCNT"u8))
-            {
-                WriteIndented(writer, indentation + 1, $"List count: {MemoryMarshal.Read<int>(data.Data.Span)}");
-            }
-            else if (data.Identifier.Span.SequenceEqual("BNKI"u8))
+            if (data.Identifier.Span.SequenceEqual("BNKI"u8))
             {
                 WriteIndented(writer, indentation + 1, "Bank ??");
                 var guid = new Guid(data.Data[..16].Span);
@@ -250,8 +246,13 @@ public static class RiffParser
             }
             else
             {
-                data.ToWriter(writer, indentation + 1);
+                data.ToTextWriter(writer, indentation + 1);
             }
+        }
+        else
+        {
+            WriteIndented(writer, indentation, $"[{IdentToStr(chunk.Identifier)}] len={chunk.Length}");
+            chunk.ToTextWriter(writer, indentation + 1);
         }
     }
 

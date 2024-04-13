@@ -7,12 +7,18 @@ public static class Program
         var inputFile = args[0];
 
         GuidCache.LoadFile("GUIDs.txt");
-        var chunk = RiffParser.Parse(inputFile);
+        var fmodFile = RiffParser.Parse(inputFile);
+
+        using (var file = File.Create($"roundtrip_{inputFile}"))
+        {
+            using var writer = new BinaryWriter(file);
+            fmodFile.RootChunk.Write(writer);
+        }
 
         using var outFile = File.CreateText($"{inputFile}.out");
-        RiffParser.Print(outFile, chunk);
+        RiffParser.Print(outFile, fmodFile.RootChunk);
 
         using var outFileJson = File.Create($"{inputFile}.json");
-        RiffParser.Print2(outFileJson, chunk);
+        RiffParser.Print2(outFileJson, fmodFile.RootChunk);
     }
 }

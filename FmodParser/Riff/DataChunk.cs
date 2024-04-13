@@ -6,7 +6,7 @@ public class DataChunk : RiffChunkBase
 {
     public Memory<byte> Data { get; set; }
 
-    public override void ToWriter(TextWriter writer, int indent = 0)
+    public override void ToTextWriter(TextWriter writer, int indent = 0)
     {
         writer.WriteIndented(indent, Convert.ToHexString(Data.Span));
     }

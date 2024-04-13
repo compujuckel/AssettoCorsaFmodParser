@@ -5,9 +5,8 @@ public abstract class RiffChunkBase
     public Memory<byte> Identifier { get; set; }
     public int Length { get; set; }
 
-    public void Write(Stream stream)
+    public void Write(BinaryWriter writer)
     {
-        using var writer = new BinaryWriter(stream);
         writer.Write(Identifier.Span);
         var lenOffset = writer.BaseStream.Position;
         writer.Write(0);
@@ -15,13 +14,18 @@ public abstract class RiffChunkBase
         WriteData(writer);
 
         var endOffset = writer.BaseStream.Position;
-        var len = endOffset - lenOffset + 4;
+        var len = endOffset - lenOffset - 4;
         writer.BaseStream.Seek(lenOffset, SeekOrigin.Begin);
         writer.Write((uint)len);
         writer.BaseStream.Seek(endOffset, SeekOrigin.Begin);
+
+        if (writer.BaseStream.Position % 2 == 1)
+        {
+            writer.Write((byte)0);
+        }
     }
 
     protected abstract void WriteData(BinaryWriter writer);
 
-    public abstract void ToWriter(TextWriter writer, int indent = 0);
+    public abstract void ToTextWriter(TextWriter writer, int indent = 0);
 }

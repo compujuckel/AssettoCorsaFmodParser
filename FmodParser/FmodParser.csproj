@@ -11,6 +11,7 @@
       <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
       <PackageReference Include="DotNext.IO" Version="4.14.0" />
       <PackageReference Include="DotNext.Unsafe" Version="4.14.0" />
+      <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
       <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
     </ItemGroup>
 

@@ -10,11 +10,11 @@ public class ListChunk : RiffChunkBase
         writer.Write(ListIdentifier.Span);
         foreach (var chunk in SubChunks)
         {
-            chunk.Write(writer.BaseStream);
+            chunk.Write(writer);
         }
     }
 
-    public override void ToWriter(TextWriter writer, int indent = 0)
+    public override void ToTextWriter(TextWriter writer, int indent = 0)
     {
         throw new NotImplementedException();
     }
