@@ -9,13 +9,13 @@ public class FmodFile : IDisposable
     private readonly MemoryMappedFile _file;
     private readonly IMappedMemoryOwner _accessor;
 
-    public readonly RiffChunkBase RootChunk;
+    public readonly ListChunk Root;
 
-    public FmodFile(MemoryMappedFile file, IMappedMemoryOwner accessor, RiffChunkBase rootChunk)
+    public FmodFile(MemoryMappedFile file, IMappedMemoryOwner accessor, ListChunk root)
     {
         _file = file;
         _accessor = accessor;
-        RootChunk = rootChunk;
+        Root = root;
     }
 
     public void Dispose()

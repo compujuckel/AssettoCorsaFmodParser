@@ -21,7 +21,7 @@ public static class RiffParser
         var accessor = file.CreateMemoryAccessor(0, 0, MemoryMappedFileAccess.Read);
 
         var result = ParseChunk(accessor.Memory, out _, out var chunk);
-        return new FmodFile(file, accessor, chunk!);
+        return new FmodFile(file, accessor, (ListChunk)chunk!);
     }
 
     public static bool ParseChunk(Memory<byte> data, out int bytesRead, [NotNullWhen(true)] out RiffChunkBase? chunk)
@@ -67,11 +67,6 @@ public static class RiffParser
 
         bytesRead = 8 + length + (length % 2 == 1 ? 1 : 0);
         return true;
-    }
-    
-    public static void Print2(Stream stream, RiffChunkBase chunkBase)
-    {
-        JsonSerializer.Serialize(stream, (ListChunk)chunkBase);
     }
     
     public static void Print(TextWriter writer, RiffChunkBase chunk, int indentation = 0)
@@ -215,34 +210,6 @@ public static class RiffParser
             else if (data.Identifier.Span.SequenceEqual("SND "u8))
             {
                 WriteIndented(writer, indentation + 1, "[omitted]");
-                var hash = Convert.ToHexString(XxHash3.Hash(data.Data.Span));
-                var bytes = data.Data.TrimStart(stackalloc byte[] { 0 });
-                //File.WriteAllBytes($"{hash}.fsb", bytes);
-                Directory.CreateDirectory(hash);
-                
-                var fmod = FsbLoader.LoadFsbFromByteArray(bytes);
-                WriteIndented(writer, indentation + 1, $"No. of samples: {fmod.Samples.Count}");
-                
-                fmod.Samples.First(s => s.Name == "horn").ReplaceAudio("Vine-boom-sound-effect.wav");
-                
-                fmod.ToFile("out.fsb5");
-
-                var i = 0;
-                foreach (var sample in fmod.Samples)
-                {
-                    WriteIndented(writer, indentation + 1, $"Sample size {sample.SampleBytes.Length} bytes");
-                    
-                    if(!sample.RebuildAsStandardFileFormat(out var sampleData, out var extension))
-                    {
-                        Console.WriteLine($"Failed to extract sample {i}");
-                        continue;
-                    }
-            
-                    var filePath = Path.Combine(hash, $"{i:X}_{sample.Name ?? i.ToString()}.{extension}");
-                    File.WriteAllBytes(filePath, sampleData);
-
-                    i++;
-                }
             }
             else
             {

@@ -1,4 +1,6 @@
-﻿namespace FmodParser.Riff;
+﻿using System.Text;
+
+namespace FmodParser.Riff;
 
 public abstract class RiffChunkBase
 {
@@ -28,4 +30,9 @@ public abstract class RiffChunkBase
     protected abstract void WriteData(BinaryWriter writer);
 
     public abstract void ToTextWriter(TextWriter writer, int indent = 0);
+
+    public new string ToString()
+    {
+        return $"Chunk {Encoding.ASCII.GetString(Identifier.Span)}, len={Length}";
+    }
 }
