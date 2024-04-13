@@ -25,6 +25,11 @@ public abstract class RiffChunkBase
         {
             writer.Write((byte)0);
         }
+
+        if (len != Length)
+        {
+            throw new Exception("Length changed");
+        }
     }
 
     protected abstract void WriteData(BinaryWriter writer);
