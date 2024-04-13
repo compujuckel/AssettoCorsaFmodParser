@@ -3,13 +3,18 @@ using System.IO.Hashing;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using DotNext.IO.MemoryMappedFiles;
 using Fmod5Sharp;
+using FmodParser.Riff;
+using FmodParser.Utils;
 
 namespace FmodParser;
 
 public static class RiffParser
 {
+    private static readonly ChunkFactory ChunkFactory = new();
+    
     public static RiffChunkBase? Parse(string filename)
     {
         using var file = MemoryMappedFile.CreateFromFile(filename, FileMode.Open);
@@ -57,18 +62,18 @@ public static class RiffParser
         }
         else
         {
-            chunk = new DataChunk
-            {
-                Identifier = identifier,
-                Length = length,
-                Data = content
-            };
+            chunk = ChunkFactory.GetDataChunk(identifier, length, content);
         }
 
         bytesRead = 8 + length + (length % 2 == 1 ? 1 : 0);
         return true;
     }
-
+    
+    public static void Print2(Stream stream, RiffChunkBase chunkBase)
+    {
+        JsonSerializer.Serialize(stream, (ListChunk)chunkBase);
+    }
+    
     public static void Print(TextWriter writer, RiffChunkBase chunk, int indentation = 0)
     {
         if (chunk is ListChunk list)
@@ -112,55 +117,12 @@ public static class RiffParser
             {
                 WriteIndented(writer, indentation + 1, $"List count: {MemoryMarshal.Read<int>(data.Data.Span)}");
             }
-            else if (data.Identifier.Span.SequenceEqual("MBSB"u8))
-            {
-                WriteIndented(writer, indentation + 1, "Mixer Bus SB ??");
-                var guid = new Guid(data.Data[..16].Span);
-                WriteIndented(writer, indentation + 1, $"Bus ID: {guid.ToString()}");
-                WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data[16..].Span));
-            }
             else if (data.Identifier.Span.SequenceEqual("BNKI"u8))
             {
                 WriteIndented(writer, indentation + 1, "Bank ??");
                 var guid = new Guid(data.Data[..16].Span);
-                WriteIndented(writer, indentation + 1, $"Bank ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Bank ID: {guid.ToKnownString()}");
                 WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data[16..].Span));
-            }
-            else if (data.Identifier.Span.SequenceEqual("EVTB"u8))
-            {
-                WriteIndented(writer, indentation + 1, "Event ??");
-                var guid = new Guid(data.Data[..16].Span);
-                WriteIndented(writer, indentation + 1, $"Event ID: {guid.ToString()}");
-                WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(16, 16).Span));
-                int tlidOff = 16 * 2;
-                guid = new Guid(data.Data.Slice(tlidOff, 16).Span);
-                WriteIndented(writer, indentation + 1, $"Timeline ID: {guid.ToString()}");
-
-                int mixerInputOff = 16 * 3;
-                guid = new Guid(data.Data.Slice(mixerInputOff, 16).Span);
-                WriteIndented(writer, indentation + 1, $"Mixer Input ID: {guid.ToString()}");
-                
-                int eventMixerMasterOff = 16 * 4;
-                guid = new Guid(data.Data.Slice(eventMixerMasterOff, 16).Span);
-                WriteIndented(writer, indentation + 1, $"Event Mixer Master ID: {guid.ToString()}");
-
-                WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(eventMixerMasterOff + 16).Span));
-            }
-            else if (data.Identifier.Span.SequenceEqual("TLNB"u8))
-            {
-                int off = 0;
-                int len = 16;
-                
-                WriteIndented(writer, indentation + 1, "Timeline ??");
-                var guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Timeline ID: {guid.ToString()}");
-                off += len;
-                
-                guid = new Guid(data.Data.Slice(off, 16).Span);
-                WriteIndented(writer, indentation + 1, $"Event ID: {guid.ToString()}");
-                off += len;
-                
-                WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(off).Span));
             }
             else if (data.Identifier.Span.SequenceEqual("IBSB"u8))
             {
@@ -170,7 +132,7 @@ public static class RiffParser
                 WriteIndented(writer, indentation + 1, "Mixer Input ??");
                 
                 var guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Mixer Input ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Mixer Input ID: {guid.ToKnownString()}");
                 off += len;
 
                 len = 2;
@@ -179,7 +141,7 @@ public static class RiffParser
 
                 len = 16;
                 guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Output Bus ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Output Bus ID: {guid.ToKnownString()}");
                 off += len;
                 
                 WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(off).Span));
@@ -192,7 +154,7 @@ public static class RiffParser
                 WriteIndented(writer, indentation + 1, "Mixer Return ??");
                 
                 var guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Mixer Return ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Mixer Return ID: {guid.ToKnownString()}");
                 off += len;
 
                 len = 2;
@@ -201,7 +163,7 @@ public static class RiffParser
 
                 len = 16;
                 guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Output Bus ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Output Bus ID: {guid.ToKnownString()}");
                 off += len;
                 
                 WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(off).Span));
@@ -214,7 +176,7 @@ public static class RiffParser
                 WriteIndented(writer, indentation + 1, "Event Mixer Group ??");
                 
                 var guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Event Mixer Group ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Event Mixer Group ID: {guid.ToKnownString()}");
                 off += len;
 
                 len = 2;
@@ -223,7 +185,7 @@ public static class RiffParser
 
                 len = 16;
                 guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Output Bus ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Output Bus ID: {guid.ToKnownString()}");
                 off += len;
                 
                 WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(off).Span));
@@ -236,7 +198,7 @@ public static class RiffParser
                 WriteIndented(writer, indentation + 1, "Effect ??");
                 
                 var guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Effect ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Effect ID: {guid.ToKnownString()}");
                 off += len;
                 
                 WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(off).Span));
@@ -249,49 +211,25 @@ public static class RiffParser
                 WriteIndented(writer, indentation + 1, "INST ??");
                 
                 var guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Timeline ID: {guid.ToString()}");
+                WriteIndented(writer, indentation + 1, $"Timeline ID: {guid.ToKnownString()}");
                 off += len;
                 
                 WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(off).Span));
-            }
-            else if (data.Identifier.Span.SequenceEqual("WAV "u8))
-            {
-                int off = 0;
-                int len = 16;
-                
-                WriteIndented(writer, indentation + 1, "Audio File");
-                
-                var guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Audio File ID: {guid.ToString()}");
-                off += len;
-                
-                WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Slice(off).Span));
-            }
-            else if (data.Identifier.Span.SequenceEqual("WAIB"u8))
-            {
-                int off = 0;
-                int len = 16;
-                
-                WriteIndented(writer, indentation + 1, "Single Sound");
-                
-                var guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Single Sound ID: {guid.ToString()}");
-                off += len;
-                
-                guid = new Guid(data.Data.Slice(off, len).Span);
-                WriteIndented(writer, indentation + 1, $"Audio File ID: {guid.ToString()}");
-                off += len;
             }
             else if (data.Identifier.Span.SequenceEqual("SND "u8))
             {
                 WriteIndented(writer, indentation + 1, "[omitted]");
                 var hash = Convert.ToHexString(XxHash3.Hash(data.Data.Span));
-                var bytes = data.Data.Span.TrimStart(stackalloc byte[] { 0 }).ToArray();
-                File.WriteAllBytes($"{hash}.fsb", bytes);
+                var bytes = data.Data.TrimStart(stackalloc byte[] { 0 });
+                //File.WriteAllBytes($"{hash}.fsb", bytes);
                 Directory.CreateDirectory(hash);
                 
                 var fmod = FsbLoader.LoadFsbFromByteArray(bytes);
                 WriteIndented(writer, indentation + 1, $"No. of samples: {fmod.Samples.Count}");
+                
+                fmod.Samples.First(s => s.Name == "horn").ReplaceAudio("Vine-boom-sound-effect.wav");
+                
+                fmod.ToFile("out.fsb5");
 
                 var i = 0;
                 foreach (var sample in fmod.Samples)
@@ -312,12 +250,12 @@ public static class RiffParser
             }
             else
             {
-                WriteIndented(writer, indentation + 1, Convert.ToHexString(data.Data.Span));
+                data.ToWriter(writer, indentation + 1);
             }
         }
     }
 
-    private static void WriteIndented(TextWriter writer, int indent, string str)
+    public static void WriteIndented(TextWriter writer, int indent, string str)
     {
         for (int i = 0; i < indent; i++)
         {

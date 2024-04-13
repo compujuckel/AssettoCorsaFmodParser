@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FmodParser", "FmodParser\FmodParser.csproj", "{0CCDA46D-5708-4FDE-805A-21B7F4846077}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fmod5Sharp", "..\Fmod5Sharp\Fmod5Sharp\Fmod5Sharp.csproj", "{D587B669-64B1-4AE8-AAF0-C2F399DF225D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{0CCDA46D-5708-4FDE-805A-21B7F4846077}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CCDA46D-5708-4FDE-805A-21B7F4846077}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CCDA46D-5708-4FDE-805A-21B7F4846077}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D587B669-64B1-4AE8-AAF0-C2F399DF225D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D587B669-64B1-4AE8-AAF0-C2F399DF225D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D587B669-64B1-4AE8-AAF0-C2F399DF225D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D587B669-64B1-4AE8-AAF0-C2F399DF225D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
