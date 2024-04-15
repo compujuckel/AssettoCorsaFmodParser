@@ -29,25 +29,19 @@ public static class RiffParser
         var identifier = data[..4];
         var length = MemoryMarshal.Read<int>(data[4..8].Span);
         var content = data[8..(length + 8)];
-        
-        Console.WriteLine($"Chunk {Encoding.ASCII.GetString(identifier.Span)}, length {length}");
 
         if (identifier.Span.SequenceEqual("RIFF"u8) || identifier.Span.SequenceEqual("LIST"u8))
         {
             var subIdentifier = content[..4];
             var children = new List<RiffChunkBase>();
-            
-            Console.WriteLine($"Sub ident {Encoding.ASCII.GetString(subIdentifier.Span)}");
 
             var subData = content[4..];
             var subBytesRead = 0;
             while (subBytesRead < content.Length - 4 && ParseChunk(subData, out var outBytesRead, out var outChunk))
             {
-                Console.WriteLine($"before subBytesRead {subBytesRead} / {content.Length}");
                 children.Add(outChunk);
                 subData = subData[outBytesRead..];
                 subBytesRead += outBytesRead;
-                Console.WriteLine($"after subBytesRead {subBytesRead} / {content.Length}");
             }
 
             chunk = new ListChunk
@@ -57,8 +51,6 @@ public static class RiffParser
                 Length = length,
                 SubChunks = children
             };
-            
-            Console.WriteLine("End list");
         }
         else
         {

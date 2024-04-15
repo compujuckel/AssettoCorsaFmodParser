@@ -14,7 +14,7 @@ public static class GuidCache
             var guid = new Guid(line[guidStart..guidEnd]);
             var name = line[(guidEnd + 2)..];
 
-            KnownGuids.Add(guid, name);
+            KnownGuids[guid] = name;
         }
     }
 }
