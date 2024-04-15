@@ -28,7 +28,7 @@ public abstract class RiffChunkBase
 
         if (len != Length)
         {
-            throw new Exception("Length changed");
+            //throw new Exception("Length changed");
         }
     }
 

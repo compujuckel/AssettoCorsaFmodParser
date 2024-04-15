@@ -12,9 +12,9 @@ public static class BinaryWriterExtensions
     internal static void Align(this BinaryWriter writer, int numBytes)
     {
         var pos = writer.BaseStream.Position;
-        if (pos % 32 == 0) return;
+        if (pos % numBytes == 0) return;
             
-        for (var i = 0; i < 32 - pos % 32; i++)
+        for (var i = 0; i < numBytes - pos % numBytes; i++)
         {
             writer.Write((byte)0);
         }
