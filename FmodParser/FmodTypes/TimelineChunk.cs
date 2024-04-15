@@ -3,7 +3,6 @@ using FmodParser.Utils;
 
 namespace FmodParser.FmodTypes;
 
-[DataChunk("TLNB")]
 public class TimelineChunk : RiffChunkBase
 {
     public Guid TimelineId { get; set; }

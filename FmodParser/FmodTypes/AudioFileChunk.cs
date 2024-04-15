@@ -3,7 +3,6 @@ using FmodParser.Utils;
 
 namespace FmodParser.FmodTypes;
 
-[DataChunk("WAV ")]
 public class AudioFileChunk : RiffChunkBase
 {
     public Guid AudioFileId { get; set; }

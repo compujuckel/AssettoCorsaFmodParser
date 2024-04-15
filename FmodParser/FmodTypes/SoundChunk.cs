@@ -5,7 +5,6 @@ using FmodParser.Utils;
 
 namespace FmodParser.FmodTypes;
 
-[DataChunk("SND ")]
 public class SoundChunk : RiffChunkBase
 {
     public FmodSoundBank Bank;

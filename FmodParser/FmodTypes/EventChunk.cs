@@ -3,7 +3,6 @@ using FmodParser.Utils;
 
 namespace FmodParser.FmodTypes;
 
-[DataChunk("EVTB")]
 public class EventChunk : RiffChunkBase
 {
     public Guid EventId { get; set; }

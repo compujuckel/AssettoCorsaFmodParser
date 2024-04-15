@@ -1,36 +1,37 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
+using FmodParser.FmodTypes;
 using FmodParser.Riff;
 
 namespace FmodParser;
 
 public class ChunkFactory
 {
-    private readonly Dictionary<uint, Type> _typeMap = new();
+    private static uint Int(ReadOnlySpan<byte> id) => MemoryMarshal.Read<uint>(id);
 
-    public ChunkFactory()
+    private readonly Dictionary<uint, Func<BinaryReader, RiffChunkBase>> _map = new()
     {
-        foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
-        {
-            var dataChunkAttr = type.GetCustomAttribute<DataChunkAttribute>();
-            if (dataChunkAttr == null) continue;
-
-            var identifierInt = MemoryMarshal.Read<uint>(dataChunkAttr.Identifier);
-
-            _typeMap.Add(identifierInt, type);
-        }
-    }
+        { Int("WAV "u8), reader => new AudioFileChunk(reader) },
+        { Int("EVTB"u8), reader => new EventChunk(reader) },
+        { Int("LCNT"u8), reader => new ListCountChunk(reader) },
+        { Int("MBSB"u8), reader => new MixerBusChunk(reader) },
+        { Int("MODU"u8), reader => new ModulatorChunk(reader) },
+        { Int("MUIB"u8), reader => new MultiSoundChunk(reader) },
+        { Int("PEFB"u8), reader => new PluginChunk(reader) },
+        { Int("WAIB"u8), reader => new SingleSoundChunk(reader) },
+        { Int("SND "u8), reader => new SoundChunk(reader) },
+        { Int("TLNB"u8), reader => new TimelineChunk(reader) },
+    };
 
     public RiffChunkBase GetDataChunk(Memory<byte> identifier, int length, Memory<byte> data)
     {
         var identifierInt = MemoryMarshal.Read<uint>(identifier.Span);
 
-        if (_typeMap.TryGetValue(identifierInt, out var type))
+        if (_map.TryGetValue(identifierInt, out var factory))
         {
             using var stream = data.AsStream();
             using var reader = new BinaryReader(stream);
-            var chunk = (RiffChunkBase)Activator.CreateInstance(type, reader)!;
+            var chunk = factory(reader);
             chunk.Identifier = identifier;
             chunk.Length = length;
 

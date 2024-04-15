@@ -3,7 +3,6 @@ using FmodParser.Utils;
 
 namespace FmodParser.FmodTypes;
 
-[DataChunk("WAIB")]
 public class SingleSoundChunk : RiffChunkBase
 {
     public Guid SingleSoundId { get; set; }

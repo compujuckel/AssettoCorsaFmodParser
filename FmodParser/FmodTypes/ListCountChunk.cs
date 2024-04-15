@@ -3,7 +3,6 @@ using FmodParser.Utils;
 
 namespace FmodParser.FmodTypes;
 
-[DataChunk("LCNT")]
 public class ListCountChunk : RiffChunkBase
 {
     public int ListCount { get; set; }

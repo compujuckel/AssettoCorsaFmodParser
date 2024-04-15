@@ -3,7 +3,6 @@ using FmodParser.Utils;
 
 namespace FmodParser.FmodTypes;
 
-[DataChunk("PEFB")]
 public class PluginChunk : RiffChunkBase
 {
     public Guid PluginId { get; set; }

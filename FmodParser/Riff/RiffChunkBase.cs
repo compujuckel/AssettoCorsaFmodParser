@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using FmodParser.Utils;
 
 namespace FmodParser.Riff;
 
@@ -20,15 +21,14 @@ public abstract class RiffChunkBase
         writer.BaseStream.Seek(lenOffset, SeekOrigin.Begin);
         writer.Write((uint)len);
         writer.BaseStream.Seek(endOffset, SeekOrigin.Begin);
+        
+        writer.Align(2);
 
-        if (writer.BaseStream.Position % 2 == 1)
+        if (len != Length
+            && !Identifier.Span.SequenceEqual("SND "u8)
+            && !Identifier.Span.SequenceEqual("RIFF"u8))
         {
-            writer.Write((byte)0);
-        }
-
-        if (len != Length)
-        {
-            //throw new Exception("Length changed");
+            throw new Exception($"Length of chunk {Encoding.ASCII.GetString(Identifier.Span)} changed. Please report this bug");
         }
     }
 

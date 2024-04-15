@@ -1,45 +1,56 @@
-﻿using CommandLine;
-using JetBrains.Annotations;
+﻿using System.CommandLine;
+using System.Diagnostics;
 
 namespace FmodParser;
 
 public static class Program
 {
-    [UsedImplicitly(ImplicitUseKindFlags.Assign, ImplicitUseTargetFlags.WithMembers)]
-    public class Options
-    {
-        [Value(0, MetaName = "Input File", HelpText = "Input file (*.bank)", Required = true)]
-        public required string InputFile { get; init; }
-        
-        [Option('r', "replace", HelpText = "Replace audio files in this soundbank.")]
-        public bool Replace { get; init;  }
-        
-        [Option('d', "downsample", HelpText = "Downsample stereo to mono if audio channels match")]
-        public bool Downsample { get; init; }
+    public const string Description = """
+                                      Assetto Corsa FMOD Analyzer
 
-        [Option("downsample-threshold", HelpText = "Maximum deviation between left/right channels required for downsampling", Default = 5)]
-        public int DownsampleThreshold { get; init; }
-
-        public double DownsampleThresholdPerMille => DownsampleThreshold / 1000.0;
-    }
+                                      By default this tool will extract all samples from a sound bank and write three files:
+                                      <filename>_structure.txt: A file outlining the contents of the FMOD sound bank
+                                      <filename>_samples.txt: A file showing some info about included sound samples
+                                      <filename>_out.bank: The sound bank with sounds downsampled to mono according to the downsample-threshold parameter
+                                      """;
     
     public static void Main(string[] args)
     {
-        var options = Parser.Default.ParseArguments<Options>(args).Value;
-        if (options == null) return;
+        if (!Debugger.IsAttached)
+        {
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+        }
         
-        var inputFileName = Path.GetFileName(options.InputFile);
-        var nameNoExtension = Path.GetFileNameWithoutExtension(inputFileName);
+        var inputFileArgument = new Argument<FileInfo>("input-file", "The input sound bank (*.bank)");
+        var downsampleThresholdOption = new Option<int>(aliases: ["-d", "--downsample-threshold"], 
+            description: "Maximum deviation between left/right channels required for downsampling from stereo to mono",
+            getDefaultValue: () => 5);
+        var replaceOption = new Option<bool>(["-r", "--replace"],
+            "Instead of extracting a sound bank, replace all files in the sound bank with files from a folder with the same name");
+
+        var rootCommand = new RootCommand(Description);
+        rootCommand.Add(inputFileArgument);
+        rootCommand.Add(downsampleThresholdOption);
+        rootCommand.Add(replaceOption);
+
+        rootCommand.SetHandler(ActualMain, inputFileArgument, downsampleThresholdOption, replaceOption);
+        rootCommand.Invoke(args);
+    }
+
+    public static void ActualMain(FileInfo inputFile, int downsampleThresholdInt, bool replace)
+    {
+        var downsampleThreshold = downsampleThresholdInt / 1000.0;
+        var nameNoExtension = Path.GetFileNameWithoutExtension(inputFile.Name);
 
         if (File.Exists("GUIDs.txt"))
         {
             GuidCache.LoadFile("GUIDs.txt");
         }
-        
-        var fmodFile = RiffParser.Parse(options.InputFile);
+
+        var fmodFile = RiffParser.Parse(inputFile.FullName);
         var bank = fmodFile.FindSoundBank();
-        
-        if (options.Replace)
+
+        if (replace)
         {
             foreach (var sample in bank.Samples)
             {
@@ -57,12 +68,9 @@ public static class Program
             analyzer.PrintResults(log);
         }
 
-        if (options.Downsample)
-        {
-            analyzer.StereoToMono(options.DownsampleThresholdPerMille);
-        }
-        
-        if (!options.Replace)
+        analyzer.StereoToMono(downsampleThreshold);
+
+        if (!replace)
         {
             Directory.CreateDirectory(nameNoExtension);
             foreach (var sample in bank.Samples)
@@ -76,13 +84,17 @@ public static class Program
                 File.WriteAllBytes(samplePath, data);
             }
         }
-
-        if (options.Replace || options.Downsample)
-        {
-            fmodFile.ToFile($"{nameNoExtension}_out.bank");
-        }
+    
+        fmodFile.ToFile($"{nameNoExtension}_out.bank");
 
         using var outFile = File.CreateText($"{nameNoExtension}_structure.txt");
         RiffParser.Print(outFile, fmodFile.Root);
+    }
+
+    private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        Console.WriteLine(((Exception)e.ExceptionObject).ToString());
+        Console.ReadKey();
+        Environment.Exit(1);
     }
 }

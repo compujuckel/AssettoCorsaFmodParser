@@ -3,7 +3,6 @@ using FmodParser.Utils;
 
 namespace FmodParser.FmodTypes;
 
-[DataChunk("MBSB")]
 public class MixerBusChunk : RiffChunkBase
 {
     public Guid MixerBusId { get; set; }

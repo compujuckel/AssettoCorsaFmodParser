@@ -6,14 +6,15 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <InvariantGlobalization>true</InvariantGlobalization>
+        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommandLineParser" Version="2.9.1" />
       <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
       <PackageReference Include="DotNext.IO" Version="4.14.0" />
       <PackageReference Include="DotNext.Unsafe" Version="4.14.0" />
       <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+      <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
       <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
     </ItemGroup>
 
