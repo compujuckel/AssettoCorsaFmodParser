@@ -6,13 +6,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <PublishAot>true</PublishAot>
         <PublishDir>..\out-$(RuntimeIdentifier)\</PublishDir>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
-        <DebugSymbols>False</DebugSymbols>
-        <DebugType>None</DebugType>
+        <DebugType>embedded</DebugType>
+        <PublishSingleFile>true</PublishSingleFile>
+        <SelfContained>false</SelfContained>
     </PropertyGroup>
 
     <ItemGroup>
