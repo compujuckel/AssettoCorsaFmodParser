@@ -1,0 +1,42 @@
+﻿name: Build
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: compujuckel/Fmod5Sharp
+          path: Fmod5Sharp
+      - uses: actions/checkout@v4
+        with:
+          path: FmodParser
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.x
+      - name: Publish (Linux x64)
+        run: dotnet publish --runtime linux-x64 -c Release
+        working-directory: ./FmodParser
+      - name: Publish (Windows x64)
+        run: dotnet publish --runtime win-x64 -c Release
+        working-directory: ./FmodParser
+      - name: Package (Linux x64)
+        run: tar -czf fmod-parser-linux-x64.tar.gz *
+        working-directory: ./FmodParser/out-linux-x64
+      - name: Package (Windows x64)
+        run: zip -r fmod-parser-win-x64.zip *
+        working-directory: ./FmodParser/out-win-x64
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          files: |
+            FmodParser/out-linux-x64/fmod-parser-linux-x64.tar.gz
+            FmodParser/out-win-x64/fmod-parser-win-x64.zip

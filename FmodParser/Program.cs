@@ -6,7 +6,7 @@ namespace FmodParser;
 public static class Program
 {
     public const string Description = """
-                                      Assetto Corsa FMOD Analyzer
+                                      Assetto Corsa FMOD Parser
 
                                       By default this tool will extract all samples from a sound bank and write three files:
                                       <filename>_structure.txt: A file outlining the contents of the FMOD sound bank
